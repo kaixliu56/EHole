@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,24 +38,24 @@ var fingerCmd = &cobra.Command{
 			"			 /____/ https://forum.ywhack.com  By:shihuang\n")
 		if localfile != "" {
 			urls := removeRepeatedElement(source.LocalFile(localfile))
-			s := finger.NewScan(urls, thread, output,proxy)
+			s := finger.NewScan(urls, thread, output, proxy)
 			s.StartScan()
 			os.Exit(1)
 		}
 		if fofaip != "" {
 			urls := removeRepeatedElement(source.Fofaip(fofaip))
-			s := finger.NewScan(urls, thread, output,proxy)
+			s := finger.NewScan(urls, thread, output, proxy)
 			s.StartScan()
 			os.Exit(1)
 		}
 		if fofasearche != "" {
 			urls := removeRepeatedElement(source.Fafaall(fofasearche))
-			s := finger.NewScan(urls, thread, output,proxy)
+			s := finger.NewScan(urls, thread, output, proxy)
 			s.StartScan()
 			os.Exit(1)
 		}
 		if urla != "" {
-			s := finger.NewScan([]string{urla}, thread, output,proxy)
+			s := finger.NewScan([]string{urla}, thread, output, proxy)
 			s.StartScan()
 			os.Exit(1)
 		}
@@ -69,7 +69,7 @@ var (
 	urla        string
 	thread      int
 	output      string
-	proxy		string
+	proxy       string
 )
 
 func init() {
@@ -78,7 +78,7 @@ func init() {
 	fingerCmd.Flags().StringVarP(&fofasearche, "fofa", "s", "", "从fofa提取资产，进行指纹识别，支持fofa所有语法")
 	fingerCmd.Flags().StringVarP(&localfile, "local", "l", "", "从本地文件读取资产，进行指纹识别，支持无协议，列如：192.168.1.1:9090 | http://192.168.1.1:9090")
 	fingerCmd.Flags().StringVarP(&urla, "url", "u", "", "识别单个目标。")
-	fingerCmd.Flags().StringVarP(&output, "output", "o", "", "输出所有结果，当前仅支持json和xlsx后缀的文件。")
+	fingerCmd.Flags().StringVarP(&output, "output", "o", "", "输出重点资产结果，格式与CLI最终输出一致。")
 	fingerCmd.Flags().IntVarP(&thread, "thread", "t", 100, "指纹识别线程大小。")
 	fingerCmd.Flags().StringVarP(&proxy, "proxy", "p", "", "指定访问目标时的代理，支持http代理和socks5，例如：http://127.0.0.1:8080、socks5://127.0.0.1:8080")
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gookit/color"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 )
@@ -50,12 +51,12 @@ func NewScan(urls []string, thread int, output string, proxy string) *FinScan {
 	}
 	s.Finpx = GetWebfingerprint()
 	for _, url := range urls {
-		s.UrlQueue.Push([]string{url,"0"})
+		s.UrlQueue.Push([]string{url, "0"})
 	}
 	return s
 }
 
-func (s *FinScan)StartScan() {
+func (s *FinScan) StartScan() {
 	for i := 0; i <= s.Thread; i++ {
 		s.Wg.Add(1)
 		go func() {
@@ -65,14 +66,57 @@ func (s *FinScan)StartScan() {
 	}
 	s.Wg.Wait()
 	color.RGBStyleFromString("244,211,49").Println("\n重点资产：")
-	for _,aas := range s.FocusResult {
-		fmt.Printf(fmt.Sprintf("[ %s | ", aas.Url))
-		color.RGBStyleFromString("237,64,35").Printf(fmt.Sprintf("%s", aas.Cms))
-		fmt.Printf(fmt.Sprintf(" | %s | %d | %d | %s ]\n", aas.Server, aas.Statuscode, aas.Length, aas.Title))
-	}
+	printFocusResultByCMS(s.FocusResult)
 	if s.Output != "" {
-		outfile(s.Output, s.AllResult)
+		outFocusResult(s.Output, s.FocusResult)
 	}
+}
+
+func printFocusResultByCMS(results []Outrestul) {
+	grouped, cmsNames := groupFocusResultByCMS(results)
+
+	for _, cms := range cmsNames {
+		color.RGBStyleFromString("237,64,35").Printf("%s (%d)\n", cms, len(grouped[cms]))
+		for _, url := range grouped[cms] {
+			fmt.Println(url)
+		}
+		fmt.Println()
+	}
+}
+
+func formatFocusResultByCMS(results []Outrestul) string {
+	grouped, cmsNames := groupFocusResultByCMS(results)
+	lines := []string{"重点资产："}
+
+	for _, cms := range cmsNames {
+		lines = append(lines, fmt.Sprintf("%s (%d)", cms, len(grouped[cms])))
+		lines = append(lines, grouped[cms]...)
+		lines = append(lines, "")
+	}
+
+	return strings.Join(lines, "\n") + "\n"
+}
+
+func groupFocusResultByCMS(results []Outrestul) (map[string][]string, []string) {
+	grouped := make(map[string][]string)
+
+	for _, result := range results {
+		for _, cms := range strings.Split(result.Cms, ",") {
+			cms = strings.TrimSpace(cms)
+			if cms == "" {
+				continue
+			}
+			grouped[cms] = append(grouped[cms], result.Url)
+		}
+	}
+
+	cmsNames := make([]string, 0, len(grouped))
+	for cms := range grouped {
+		cmsNames = append(cmsNames, cms)
+	}
+	sort.Strings(cmsNames)
+
+	return grouped, cmsNames
 }
 
 func MapToJson(param map[string][]string) string {
@@ -92,10 +136,10 @@ func RemoveDuplicatesAndEmpty(a []string) (ret []string) {
 	return
 }
 
-func (s *FinScan)fingerScan() {
+func (s *FinScan) fingerScan() {
 	for s.UrlQueue.Len() != 0 {
 		dataface := s.UrlQueue.Pop()
-		switch dataface.(type){
+		switch dataface.(type) {
 		case []string:
 			url := dataface.([]string)
 			var data *resps
@@ -160,11 +204,11 @@ func (s *FinScan)fingerScan() {
 			cms = RemoveDuplicatesAndEmpty(cms)
 			cmss := strings.Join(cms, ",")
 			out := Outrestul{data.url, cmss, data.server, data.statuscode, data.length, data.title}
-			s.AllResult = append(s.AllResult,out)
+			s.AllResult = append(s.AllResult, out)
 			if len(out.Cms) != 0 {
 				outstr := fmt.Sprintf("[ %s | %s | %s | %d | %d | %s ]", out.Url, out.Cms, out.Server, out.Statuscode, out.Length, out.Title)
 				color.RGBStyleFromString("237,64,35").Println(outstr)
-				s.FocusResult = append(s.FocusResult,out)
+				s.FocusResult = append(s.FocusResult, out)
 			} else {
 				outstr := fmt.Sprintf("[ %s | %s | %s | %d | %d | %s ]", out.Url, out.Cms, out.Server, out.Statuscode, out.Length, out.Title)
 				fmt.Println(outstr)
@@ -174,4 +218,3 @@ func (s *FinScan)fingerScan() {
 		}
 	}
 }
-

@@ -3,6 +3,7 @@ package finger
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -63,4 +64,11 @@ func outfile(filename string, allresult []Outrestul) {
 		}
 	}
 
+}
+
+func outFocusResult(filename string, focusResult []Outrestul) {
+	err := ioutil.WriteFile(filename, []byte(formatFocusResultByCMS(focusResult)), 0644)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
