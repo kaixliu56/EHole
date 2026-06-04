@@ -1,4 +1,5 @@
 ehole
+*.exe
 *.log
 *.xlsx
 result.json
